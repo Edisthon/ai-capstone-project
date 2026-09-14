@@ -1,0 +1,3 @@
+# Build output from deploy.ps1 - regenerate with ./deploy.ps1, never commit
+ecosip_deploy.zip
+ziptest/

@@ -33,7 +33,7 @@ Producing this page by hand needs three different skills and three different wor
 |---|---|---|---|
 | 1 | Chat | Gemini side panel in Chrome ("Ask Gemini") | [`docs/stage1-chat-ux.png`](docs/stage1-chat-ux.png) |
 | 2 | IDE | Antigravity IDE, Gemini 3.1 Pro (High) agent | [`docs/stage2-ide-ux.png`](docs/stage2-ide-ux.png) |
-| 3 | CLI | Gemini CLI in a Windows terminal | [`docs/stage3-served-result.png`](docs/stage3-served-result.png) |
+| 3 | CLI | Gemini CLI in a Windows terminal | [`docs/stage3-served-result.png`](docs/stage3-served-result.png), plus two re-run captures (see Stage 3 below) |
 
 One correction to the first version of this write-up, which said "ChatGPT / Gemini Web" and "Gemini Assistant in VS Code". Neither is what I ran. I opened ChatGPT first for Stage 1 and the tab crashed; the "Aw, Snap!" error is still visible behind the panel in the Stage 1 screenshot, so I ran the prompt in Chrome's Gemini side panel instead. Stage 2 ran in Antigravity IDE, not VS Code.
 
@@ -87,6 +87,18 @@ One correction to the first version of this write-up, which said "ChatGPT / Gemi
 
 ![The finished EcoSip FAQ page served at localhost:8080](docs/stage3-served-result.png)
 
+**A note on the evidence for this stage.** I did not capture the terminal during the original run, so the two images below are a **re-run on 14 September 2026**, recorded while preparing this rewrite. They are not from the July session and are not presented as such. What they demonstrate is that the stage reproduces.
+
+The first shows the static server started from the repository root, and the request log after loading the page:
+
+![Terminal showing python3 -m http.server 8081 and 200 responses for /, styles.css, script.js and data.json](docs/stage3-cli-rerun.png)
+
+The four `200` lines are the chain working end to end in one frame: the browser loads `index.html`, which pulls `styles.css` and `script.js`, which then fetches the `data.json` that Stage 1 produced. The `404` on `/favicon.ico` is the browser asking for an icon the project does not have, and is harmless.
+
+The second shows the packaging script. It captures both halves of the deviation described in section 6 - `./deploy.ps1` failing under bash with `Compress-Archive: command not found`, and the same script succeeding when handed to PowerShell:
+
+![Terminal showing deploy.ps1 failing under bash, then succeeding via powershell.exe with the message: Deployment package ecosip_deploy.zip created successfully](docs/stage3-deploy-rerun.png)
+
 ---
 
 ## 6. Deviations from the prompts
@@ -96,7 +108,7 @@ Three things did not come out the way the prompt specified. All three are in the
 | I asked for | I got | What I did about it |
 |---|---|---|
 | One `index.html` containing HTML, CSS and JavaScript | `index.html` + `styles.css` + `script.js` | **Kept the split.** Three files is better practice than one, and it costs the workflow nothing: the handoff contract is `data.json`, not the file count. `deploy.ps1` packages all three, so nothing downstream noticed. |
-| A shell script (`deploy.sh`) to zip the files | `deploy.ps1`, a PowerShell script using `Compress-Archive` | **Kept it.** The agent read the environment correctly - I was in a Windows terminal, where a `.sh` file would not run without WSL or Git Bash. It adapted to the host instead of obeying the word "shell" literally. `deploy.sh` was never created; the first version of this write-up claimed it was, which was wrong. |
+| A shell script (`deploy.sh`) to zip the files | `deploy.ps1`, a PowerShell script using `Compress-Archive` | **Kept it.** The agent read the environment correctly - I was in a Windows terminal, where a `.sh` file would not run without WSL or Git Bash. It adapted to the host instead of obeying the word "shell" literally. `deploy.sh` was never created; the first version of this write-up claimed it was, which was wrong. Both behaviours are visible in [`docs/stage3-deploy-rerun.png`](docs/stage3-deploy-rerun.png). |
 | Zip "the HTML and JSON files" (two files) | An archive of four files: `index.html`, `styles.css`, `script.js`, `data.json` | **Kept it.** My prompt was written before I knew the code would be split. Zipping only two of the four would have shipped a broken page. Group C of `tests/verify.py` now pins all four so this cannot silently regress. |
 
 ## 7. Prompt iteration and reflection
@@ -161,7 +173,8 @@ The suite exits non-zero on failure and has been checked against a deliberately 
 
 ## 11. Known limitations
 
-- **No terminal screenshot for Stage 3.** The stage is evidenced by its artefacts (`deploy.ps1`, and the page served at `localhost:8080` in the Stage 3 screenshot) rather than by a capture of the CLI session itself.
+- **The Stage 3 terminal captures are re-runs, not originals.** Nothing was recorded of the CLI session during the July run. `docs/stage3-cli-rerun.png` and `docs/stage3-deploy-rerun.png` were produced on 14 September 2026 and show that the stage reproduces, not what happened on the night.
+- **The contents of `ecosip_deploy.zip` were not inspected.** The script reports success and the test suite checks that it names all four runtime files, but nobody has opened the archive and confirmed all four are inside it.
 - **No demo video.** The three screenshots show the start, middle and end states, but not the accordion animating.
 - **No automated browser test.** Group D proves the files serve and the JSON survives the round trip; it does not click anything. The accordion open/close behaviour, the icon rotation and the "only one panel open at a time" rule were verified by hand in Brave, not by a test.
 - **`deploy.ps1` is Windows-only.** See section 6.
