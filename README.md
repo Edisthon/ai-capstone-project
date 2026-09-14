@@ -174,8 +174,7 @@ The suite exits non-zero on failure and has been checked against a deliberately 
 ## 11. Known limitations
 
 - **The Stage 3 terminal captures are re-runs, not originals.** Nothing was recorded of the CLI session during the July run. `docs/stage3-cli-rerun.png` and `docs/stage3-deploy-rerun.png` were produced on 14 September 2026 and show that the stage reproduces, not what happened on the night.
-- **The contents of `ecosip_deploy.zip` were not inspected.** The script reports success and the test suite checks that it names all four runtime files, but nobody has opened the archive and confirmed all four are inside it.
-- **No demo video.** The three screenshots show the start, middle and end states, but not the accordion animating.
+- **No demo video.** The screenshots in `docs/` show the start, middle and end states, but not the accordion animating.
 - **No automated browser test.** Group D proves the files serve and the JSON survives the round trip; it does not click anything. The accordion open/close behaviour, the icon rotation and the "only one panel open at a time" rule were verified by hand in Brave, not by a test.
 - **`deploy.ps1` is Windows-only.** See section 6.
 - **The FAQ content is synthetic marketing copy.** EcoSip is a fictional product and the claims about materials, insulation hours and recyclability were invented by a language model. They are not fact-checked and should not be treated as product specifications.
